@@ -14,7 +14,8 @@ def close_db(error):
 @app.route('/member', methods=['GET'])
 def get_members():
     db = get_db()
-    members_cur = db.execute('select id, name, email, level from members')
+    members_cur = db.execute('select id, name, email, level '
+                             'from members')
     members = members_cur.fetchall()
 
     return_values = []
@@ -34,10 +35,16 @@ def get_members():
 @app.route('/member/<int:member_id>', methods=['GET'])
 def get_member(member_id):
     db = get_db()
-    member_cur = db.execute('select id, name, email, level from members where id = ?', [member_id])
+    member_cur = db.execute('select id, name, email, level '
+                            'from members '
+                            'where id = ?',
+                            [member_id])
     member = member_cur.fetchone()
 
-    return jsonify({'member' : {'id' : member['id'], 'name' : member['name'], 'email' : member['email'], 'level' : member['level']}})
+    return jsonify({'member' : {'id' : member['id'],
+                                'name' : member['name'],
+                                'email' : member['email'],
+                                'level' : member['level']}})
 
 
 @app.route('/member', methods=['POST'])
@@ -49,13 +56,19 @@ def add_member():
     level = new_member_data['level']
 
     db = get_db()
-    db.execute('insert into members (name, email, level) values (?, ?, ?)', [name, email, level])
+    db.execute('insert into members (name, email, level) '
+               'values (?, ?, ?)',
+               [name, email, level])
     db.commit()
 
-    member_cur = db.execute('select id, name, email, level from members where name = ?', [name])
+    member_cur = db.execute('select id, name, email, level '
+                            'from members where name = ?',
+                            [name])
     new_member = member_cur.fetchone()
 
-    return jsonify({'id': new_member['id'], 'name': new_member['name'], 'email': new_member['email'],
+    return jsonify({'id': new_member['id'],
+                    'name': new_member['name'],
+                    'email': new_member['email'],
                     'level': new_member['level']})
 
 
@@ -68,10 +81,15 @@ def edit_member(member_id):
     level = new_member_data['level']
 
     db = get_db()
-    db.execute('update members set name = ?, email = ?, level = ? where id = ?', [name, email, level, member_id])
+    db.execute('update members '
+               'set name = ?, email = ?, level = ? '
+               'where id = ?',
+               [name, email, level, member_id])
     db.commit()
 
-    member_cur = db.execute('select id, name, email, level from members where id = ?', [member_id])
+    member_cur = db.execute('select id, name, email, level '
+                            'from members where id = ?',
+                            [member_id])
     member = member_cur.fetchone()
 
     return jsonify({'member': {'id': member['id'],
@@ -82,7 +100,11 @@ def edit_member(member_id):
 
 @app.route('/member/<int:member_id>', methods=['DELETE'])
 def delete_member(member_id):
-    return 'This removes a member by ID.'
+    db = get_db()
+    db.execute('delete from members where id = ?', [member_id])
+    db.commit()
+
+    return jsonify({'message': 'The member has been deleted!'})
 
 
 if __name__ == '__main__':

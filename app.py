@@ -1,11 +1,8 @@
 from flask import Flask, g, request, jsonify
-
 from database import get_db
+from decorator_auth import protected
 
 app = Flask(__name__)
-
-api_username = 'admin'
-api_password = 'password'
 
 
 @app.teardown_appcontext
@@ -15,6 +12,7 @@ def close_db(error):
 
 
 @app.route('/member', methods=['GET'])
+@protected
 def get_members():
     db = get_db()
     members_cur = db.execute('select id, name, email, level '
@@ -29,18 +27,13 @@ def get_members():
         member_dict['name'] = member['name']
         member_dict['email'] = member['email']
         member_dict['level'] = member['level']
-
-        username = request.authorization.username
-        password = request.authorization.password
         return_values.append(member_dict)
 
-        if username == api_username and password == api_password:
-            return jsonify({'members': return_values, 'username': username, 'password': password})
-
-        return jsonify({'message': 'Authentication failed!'}), 403
+    return jsonify({'members': return_values})
 
 
 @app.route('/member/<int:member_id>', methods=['GET'])
+@protected
 def get_member(member_id):
     db = get_db()
     member_cur = db.execute('select id, name, email, level '
@@ -56,6 +49,7 @@ def get_member(member_id):
 
 
 @app.route('/member', methods=['POST'])
+@protected
 def add_member():
     new_member_data = request.get_json()
 
@@ -81,6 +75,7 @@ def add_member():
 
 
 @app.route('/member/<int:member_id>', methods=['PUT', 'PATCH'])
+@protected
 def edit_member(member_id):
     new_member_data = request.get_json()
 
@@ -107,6 +102,7 @@ def edit_member(member_id):
 
 
 @app.route('/member/<int:member_id>', methods=['DELETE'])
+@protected
 def delete_member(member_id):
     db = get_db()
     db.execute('delete from members where id = ?', [member_id])
